@@ -1,9 +1,10 @@
-# from SetPlaceholders import SetPlaceholder
-
-import numpy as np
+'''
+This file is part of QuantifierComplexity.
+'''
 import math
 from collections import namedtuple
 from itertools import chain
+import numpy as np
 
 vectorized_isclose = np.vectorize(math.isclose)
 vectorized_round = np.vectorize(round)
@@ -14,126 +15,207 @@ SetPlaceholder = namedtuple("Operator", "name func input_types output_type")
 Operator.__repr__ = lambda self: self.name
 Operator.__str__ = lambda self: self.name
 
-## ff hardcode
-SIZE2RANGE = {
-    1: (0, 4),
-    2: (4, 20),
-    3: (20, 84),
-    4: (84, 340),
-    5: (340, 1364),
-    6: (1364, 5460),
-    7: (5460, 21844),
-    8: (21844, 87380),
-    9: (87380, 349524),
-    10: (349524, 1398100),
-    11: (1398100, 5592404),
-    12: (5592404, 22369620),
-    13: (22369620, 89478484),
-    14: (89478484, 357913940),
-    15: (357913940, 1431655764),
-    16: (1431655764, 5726623060),
-    17: (5726623060, 22906492244),
-    18: (22906492244, 91625968980),
-    19: (91625968980, 366503875924),
-    20: (366503875924, 1466015503700),
-}
+def index_func(idx: np.ndarray, set_repr: list, verbose=False) -> list:
+    """Return set reprs of idx[i]'th object of given set for model i.
 
+    The set with the idx[i]'th object of a given set, is a singleton.
 
-def index_func(i, set_repr, SIZE2RANGE):
-    """Return a set representation of taking the ith index of the given set
-    representation"""
+    Args:
+        idx: An array of the length of the model universe. Each entry
+            contains an integer. The integer k position i signifies
+            that the k'th object of model i (the i'th model in 
+            the enumeration of models in the universe) should be
+            returned as a singleton (or empty set if there is no k'th 
+            object).
+        set_repr: Contains binary numpy arrays of shape(model_size,
+            nr_of_models_of_this_model_size), for model_size 0 to 
+            max_model_size. Column i represents the elements 
+            of a given set for model i (the i'th model in the 
+            enumeration of models in the universe). A 1 at position j,i 
+            means that the j'th object of model i is present in the set,  
+            and a 0 means that that object is not present in the set.
+        verbose: True or False. Print intermediate results for 
+            debugging.
+
+    Returns:
+        A list with numpy arrays of shape(model_size,
+            nr_of_models_of_this_model_size), for model_size 0 to 
+            max_model_size. Each column i represents a set for a given 
+            model. Each of these sets is a singleton, containing the 
+            idx[n]'th object of the given set_repr for model n.
+
+    """
+    if verbose:
+        print()
+        print("i =", idx)
+    idx_start_of_block = 0
     out = []
-    for size_minus_one, set_repr_size in enumerate(set_repr):
-        size = size_minus_one + 1
-        rel_range = SIZE2RANGE[size]
-        to_compare = i[rel_range[0] : rel_range[1]]
-        result = np.zeros_like(set_repr_size)
-        c = set_repr_size.cumsum(0)
-        nonzero_x_idxs, nonzero_y_idxs = np.where(c == to_compare)
-        x_idxs, mask = np.unique(nonzero_y_idxs, return_index=True)
-        result[nonzero_x_idxs[mask], x_idxs] = 1
-        out.append(result)
+    for size_minus_one, set_repr_for_size in enumerate(set_repr):
+        idx_end_of_block = idx_start_of_block + set_repr_for_size.shape[1]
+        # The selection of the idx integer per model, 
+        # for the models of the current size.
+        idx_selection = idx[idx_start_of_block : idx_end_of_block]
+        idx_start_of_block = idx_end_of_block
+        result = np.zeros_like(set_repr_for_size)
+        # Matrix that shows, per model (the columns), for each object in
+        # the given set representation, the how manieth object that is.
+        # When an object in the model is not in the set, it puts NaN.
+        cum_set_repr = np.where(
+            set_repr_for_size == 1, set_repr_for_size.cumsum(0), np.nan
+        )
+        # For model (column) i, select the idx_selection[i]'th object of 
+        # the given set, by putting True at that position, and False 
+        # otherwise.
+        result = cum_set_repr == idx_selection
+        out.append(result.astype(int))
+        if verbose:
+            print("idx_selection =", idx_selection)
+            print("idx_selection_no_zero =", idx_selection)
+            print("set_repr_for_size =", set_repr_for_size)
+            print("cum_set_repr =", cum_set_repr)
+            print("result =", result)
+            print("out =", out)
     return out
 
 
-# def index_func(i, set_repr):
-#     global SIZE2RANGE
-#     out = []
-#     i = i.astype(np.uint8)
-#     # print("HERE", i)
-#     if all(i == 0):  # no zero based indexing for normal humans
-#         return [
-#             np.zeros(set_repr_size.shape, dtype=np.uint8)
-#             for set_repr_size in set_repr
-#         ]
-#     for size_minus_one, set_repr_size in enumerate(set_repr):
-#         size = size_minus_one + 1
-#         rel_range = SIZE2RANGE[size]
-#         to_compare = np.repeat(
-#             [i[rel_range[0] : rel_range[1]]], set_repr_size.shape[0], axis=0
-#         )
+def subset_func(set_repr_0: list, set_repr_1: list) -> np.array:
+    """Compute, per model, whether set_0 subseteq set_1.
 
-#         x, y = np.where(set_repr_size.cumsum(0) == to_compare)
-#         new_repr = np.zeros(set_repr_size.shape)
-#         new_repr[x, y] = 1
-#         out.append(new_repr.astype(np.uint8))
-#     return out
+    Args:
+        set_rep_0: Contains binary numpy arrays of shape(model_size,
+            nr_of_models_of_this_model_size), for model_size 0 to 
+            max_model_size. Column i represents the elements 
+            of set_0 for model i (the i'th model in the enumeration
+            of models in the universe). A 1 at position j,i means that 
+            the j'th object of model i is present in the set, and a 0  
+            means that that object is not present in the set.
+        set_rep_1: Similarly to set_rep_0.
 
+    Returns:
+        A numpy array containing Booleans. 
+        Boolean at index i represents the meaning of 
+        (set_0 subseteq set_1), given the ith model in the universe.
 
-def subset_func(set_repr_0, set_repr_1):
+    """
     out = np.array([])
+    # set_0 and set_1 are numpy arrays of the same shape, representing
+    # the meaning of set_0 and set_1 in all models of a particular 
+    # size.
     for size, (set_0, set_1) in enumerate(zip(set_repr_0, set_repr_1)):
         subset = (
+            # Apply along column axis.
+            # Give False for each collum in which there is a 1
+            # on a position in set_0 where there is a 0 on that position
+            # in set B. Give True otherwise.
             np.apply_along_axis(max, 0, (set_0 & (1 - set_1))) == 0
-        )  # no instances of 0 1
-        # print(subset)
-        # prevent vacous satisfcation of the subset relation
-        at_least_one = np.apply_along_axis(sum, 0, set_0) > 0
-        # print(at_least_one)
-        out = np.append(out, (subset & at_least_one))
-        # out = np.append(out, subset)
+        )
+        out = np.append(out, subset)
     return out.astype(bool)
 
 
-def diff_func(set_repr_0, set_repr_1):
+def diff_func(set_repr_0: list, set_repr_1: list) -> list:
+    """Compute, per model, the set_repr of set_0 \ set_1.
+
+    Args:
+        set_rep_0: Contains binary numpy arrays of shape(model_size,
+            nr_of_models_of_this_model_size), for model_size 0 to 
+            max_model_size. Column i represents the elements 
+            of set_0 for model i (the i'th model in the enumeration
+            of models in the universe). A 1 at position j,i means that 
+            the j'th object of model i is present in the set, and a 0  
+            means that that object is not present in the set.
+        set_rep_1: Similarly to set_rep_0.
+
+    Returns:
+        A list with numpy arrays of shape(model_size,
+            nr_of_models_of_this_model_size), for model_size 0 to 
+            max_model_size. Column i represents the elements 
+            of set 0 \ set 1 for model i (in the enumeration of models 
+            by generate_universe).
+
+    """
     out = []
+    # set_0 and set_1 are numpy arrays of the same shape, representing
+    # the meaning of set_0 and set_1 in all models of a particular size.
     for size, (set_0, set_1) in enumerate(zip(set_repr_0, set_repr_1)):
-        # print(set_0, set_1)
+        # Append a np.array of the same shape as set_0 and set_1.
+        # For each position, put a 1, if set_0 has 1 and set_1 has 0,
+        # on that position. Put a 0 otherwise.
         out.append(set_0 & (1 - set_1))
-    # [np.append(out, )
     return out
 
 
-def mod_func(x, y):
+def mod_func(x: np.array, y: np.array):
+    """ Compute x[i] modulo y[i] for each integer in x and y.
+
+    Args:
+        x: An np.array with integers. (A non-negative integer for each
+            model in the universe.)
+        y: An np.array with integers. (A non-negative integer for each
+            model in the universe.)
+
+    Returns:
+        An np.array with integers. (A non-negative integer for each
+             model in the universe.) Each entry i is the result
+            of x[i] modulo y[i].
+
+    """
+    # Make a Boolean array for indexing.
     zero_indices = y <= 0
     y_with_ones = np.array(y[:], copy=True)
+    # Put a 1 in each entry with a value <= 0.
     y_with_ones[zero_indices] = 1
     out = x % y_with_ones
+    # Put a 0 in each entry that originally had a value <= 0.
     out[zero_indices] = 0
     return out
 
 
-def div_func(x, y):
+def div_func(x: np.array, y: np.array):
+    """ Compute x[i] / y[i] for each integer in x and y.
+
+    Args:
+        x: An np.array with integers. (A non-negative integer for each
+            model in the universe.)
+        y: An np.array with integers. (A non-negative integer for each
+            model in the universe.)
+
+    Returns:
+        An np.array with integers. (A non-negative integer for each
+            model in the universe.) Each entry i is the result
+            of x[i] / y[i].
+
+    """
+    # Make a Boolean array for indexing.
     zero_indices = y <= 0
     y_with_ones = np.array(y[:], copy=True)
+    # Put a 1 in each entry with a value <= 0.
     y_with_ones[zero_indices] = 1
     out = x / y_with_ones
+    # Put a 0 in each entry that originally had a value <= 0.
     out[zero_indices] = 0
     return vectorized_round(out, 2)
 
 
-def init_operators(max_model_size, number_of_subsets=4):
-    cur_cumul = 0
-    SIZE2RANGE = dict()
-    for size in range(1, max_model_size + 1):
-        SIZE2RANGE[size] = (
-            sum(number_of_subsets ** s for s in range(1, size)),
-            sum(number_of_subsets ** s for s in range(1, size + 1)),
-        )
+def init_operators(max_model_size: int, number_of_subsets=3) -> dict:
+    """ Return a dictionary with all operators.
+
+    Args:
+        max_model_size: The number of objects in a model. Ranges
+            from 1 to max_model_size.
+        number_of_subsets: The number of subarea's in the model.
+            At most 4.
+            3 refers to: AandB, AnotB, BnotA.
+            4 refers to: AandB, AnotB, BnotA, neither.
+
+    Returns:
+        A dictionary with (operator_name, operator) pairs.
+
+    """
     return {
         "index": Operator(
             "index",
-            lambda i, s, size2range=SIZE2RANGE: index_func(i, s, size2range),
+            lambda i, s: index_func(i, s),
             (int, set),
             set,
         ),
@@ -158,11 +240,17 @@ def init_operators(max_model_size, number_of_subsets=4):
         "+": Operator(
             "+", lambda x, y: x.astype(int) + y.astype(int), (int, int), int
         ),
+        # set_repr_all is a list of np.arrays of shape 
+        # (model_size, nr_of_models_of_that_model_size), for model size 
+        # 0 to max_model_size.
+        # Each np.array represents the object in a set per model.
+        # The row operator gives a set representation for 1 model.
         "card": Operator(
             "card",
             lambda set_repr_all: np.array(
                 list(
                     chain.from_iterable(
+                        # Apply along column axis.
                         np.apply_along_axis(sum, 0, set_repr)
                         for set_repr in set_repr_all
                     )
@@ -171,12 +259,11 @@ def init_operators(max_model_size, number_of_subsets=4):
             (set,),
             int,
         ),
+        # x_repr and y_repr are two set representations, for which the
+        # same description holds as for set_repr_all.
         "intersection": Operator(
             "intersection",
             lambda x_repr, y_repr: [x & y for x, y in zip(x_repr, y_repr)],
-            # lambda model, x, y: tuple(
-            #     x.char_func(obj) and y.char_func(obj) for obj in model
-            # ),
             (set, set),
             set,
         ),
@@ -191,79 +278,3 @@ def init_operators(max_model_size, number_of_subsets=4):
         "not": Operator("not", lambda x: np.invert(x), (bool,), bool),
         "%": Operator("%", mod_func, (int, int), int),
     }
-
-
-OPERATORS = {
-    "index": Operator("index", index_func, (int, set), set),
-    "diff": Operator(
-        "diff",
-        diff_func,  # (s1.get_set(model) - s2.get_set(model))
-        (set, set),
-        set,
-    ),
-    "subset": Operator("subset", subset_func, (set, set), bool),
-    ">f": Operator(">f", lambda x, y: x > y, (float, float), bool),
-    "=f": Operator(
-        "=f", lambda x, y: vectorized_isclose(x, y), (float, float), bool
-    ),
-    ">": Operator(">", lambda x, y: x > y, (int, int), bool),
-    ">=": Operator(">=", lambda x, y: x >= y, (int, int), bool),
-    "=": Operator("=", lambda x, y: x == y, (int, int), bool),
-    "/": Operator("/", div_func, (int, int), float),
-    "-": Operator(
-        "-", lambda x, y: x.astype(int) - y.astype(int), (int, int), int
-    ),
-    "+": Operator(
-        "+", lambda x, y: x.astype(int) + y.astype(int), (int, int), int
-    ),
-    "card": Operator(
-        "card",
-        lambda set_repr_all: np.array(
-            list(
-                chain.from_iterable(
-                    np.apply_along_axis(sum, 0, set_repr)
-                    for set_repr in set_repr_all
-                )
-            )
-        ),
-        (set,),
-        int,
-    ),
-    "intersection": Operator(
-        "intersection",
-        lambda x_repr, y_repr: [x & y for x, y in zip(x_repr, y_repr)],
-        # lambda model, x, y: tuple(
-        #     x.char_func(obj) and y.char_func(obj) for obj in model
-        # ),
-        (set, set),
-        set,
-    ),
-    "union": Operator(
-        "union",
-        lambda x_repr, y_repr: [x | y for x, y in zip(x_repr, y_repr)],
-        (set, set),
-        set,
-    ),
-    "and": Operator("and", lambda x, y: x & y, (bool, bool), bool),
-    "or": Operator("or", lambda x, y: x | y, (bool, bool), bool),
-    "not": Operator("not", lambda x: np.invert(x), (bool,), bool),
-    # "empty": Operator(
-    #     lambda model, x: get_cardinality(model, x) is 0,
-    #     (set,),
-    #     bool,
-    # ),
-    # "nonempty": Operator(
-    #     lambda model, x: len(x.get_set(model)) > 0, (set,), bool
-    # ),
-    # "proportion": Operator(
-    #     lambda model, X, Y, q: get_cardinality(model, X)
-    #     / get_cardinality(model, Y)
-    #     > q
-    #     if get_cardinality(model, Y) > 0
-    #     else 0,
-    #     (set, set, float),
-    #     bool,
-    # )
-    # ,
-    "%": Operator("%", mod_func, (int, int), int),
-}
