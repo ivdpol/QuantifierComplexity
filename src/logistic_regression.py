@@ -77,11 +77,18 @@ def parse_args():
         help="Number op samples to take for bootstrapping.",
     )
     parser.add_argument(
-        "--nr",
-        "-n",
+        "--sample_size",
+        "-s",
         type=int,
-        default=NR,
-        help="Identifier of regression run.",
+        default=SAMPLE_SIZE,
+        help="Size of samples used for bootstrapping.",
+    )
+    parser.add_argument(
+        "--bootstrap_id",
+        "-i",
+        type=int,
+        default=BOOTSTRAP_ID,
+        help="Identifier of regression series.",
     )
     return parser.parse_args()
 
@@ -115,7 +122,7 @@ def bin_logistic_regression(
 
 def bootstrap_regression(
         csv_date: str, scores: list, dep_vars: list, regression_func, 
-        repeat: int, sample_size: int, nr: int, max_model_size: int, 
+        repeat: int, sample_size: int, bootstrap_id: int, max_model_size: int, 
         max_expr_len: int, language_name: str, lang_gen_date: str,
         print_summary=False, verbose=False 
 ):
@@ -128,8 +135,8 @@ def bootstrap_regression(
 
     Args: 
         csv_date: A string. The date on which the csv data was created or
-            last altered. For loading csv file with language data which includes 
-            column names as given in dep_vars.
+            last altered. For loading csv file with language data which  
+            includes column names as given in dep_vars.
         scores: A list of strings. The names of the complexity measures:
             the independent variables.
         dep_vars: A list of strings. The names of the quantifier props:
@@ -138,12 +145,16 @@ def bootstrap_regression(
         repeat: An int. The number of samples taken, i.e. the number
             regressions.
         sample_size: An int. The size of the samples taken.
+        bootstrap_id: An int. Used for storing csv data with logistic
+            regression data. Identifies the bootstrap series for a given
+            date. Multiple regression sessions were done on the same data 
+            to check for convergence.
         max_model_size: An int. Should coincide with the value in 
             max_model_size column in loaded csv data. Used for loading 
             csv data and storing regression data.
         max_expr_len: An int. Should coincide with the max value of
-            expr_length column in loaded csv data. Used for loading csv data and
-            storing regression data.
+            expr_length column in loaded csv data. Used for loading csv data 
+            and storing regression data.
         language_name: A string. Should coincide with the value of the 
             lot column in loaded csv data. Used for loading csv data and
             storing regression data.
@@ -207,8 +218,8 @@ def bootstrap_regression(
             log_reg_date = datetime.datetime.now().strftime("%Y-%m-%d")
             
             csv_filename = utils.make_log_reg_csv_filename(
-                ind_vars[0], dep_var, nr, sample_size, repeat, log_reg_date, 
-                max_model_size, max_expr_len, language_name
+                ind_vars[0], dep_var, bootstrap_id, sample_size, repeat, 
+                log_reg_date, max_model_size, max_expr_len, language_name
             )
             fileloc = utils.make_log_reg_csv_path(
                 max_model_size, language_name, lang_gen_date, log_reg_date
@@ -224,9 +235,10 @@ if __name__ == "__main__":
     MAX_EXPR_LEN = 5 
     MAX_MODEL_SIZE = 8
     LANG_GEN_DATE = "2020-12-25"
-    CSV_DATE = "2021-01-17"
-    REPEAT = 1000
-    NR = 1
+    CSV_DATE = "2021-05-05"
+    SAMPLE_SIZE = 5000
+    REPEAT = 20000
+    BOOTSTRAP_ID = 1
     args = parse_args()
     
     # Set DataFrame print options.
@@ -237,16 +249,15 @@ if __name__ == "__main__":
 
     # Set input-parameters for bootstrap_regression function.
     REGRESSION_FUNC = bin_logistic_regression
-    SAMPLE_SIZE = 5000
-    SCORES = ["ml", "lz"] # "uniformity" 
+    SCORES = ["ml", "lz"]
     # "ml" := minimal expression length
     # "lz" := Lempel Ziv complexity
     QUAN_PROPS = ["monotonicity", "quantity", "conservativity"]
     
     bootstrap_regression(
         args.csv_date, SCORES, QUAN_PROPS, REGRESSION_FUNC,
-        args.repeat, SAMPLE_SIZE, args.nr, args.max_model_size, args.max_expr_len, 
-        args.language_name, args.lang_gen_date, print_summary=False, 
-        verbose=False
+        args.repeat, args.sample_size, args.bootstrap_id, args.max_model_size, 
+        args.max_expr_len, args.language_name, args.lang_gen_date, 
+        print_summary=False, verbose=False
     ) 
         

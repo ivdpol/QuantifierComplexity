@@ -50,13 +50,6 @@ def parse_args():
             "settings.",
     )
     parser.add_argument(
-        "--dest_dir",
-        "-d",
-        type=str,
-        default=RESULTS_DIR,
-        help="Dir to write results to",
-    )
-    parser.add_argument(
         "--lang_gen_date",
         "-g",
         type=str,
@@ -70,12 +63,34 @@ def parse_args():
         default=REPEAT,
         help="Number op samples to take for bootstrapping.",
     )
+    parser.add_argument(
+        "--sample_size",
+        "-s",
+        type=int,
+        default=SAMPLE_SIZE,
+        help="Size of samples used for bootstrapping.",
+    )
+    parser.add_argument(
+        "--bootstrap_id",
+        "-i",
+        type=int,
+        default=BOOTSTRAP_ID,
+        help="Identifier of regression series.",
+    )
+    parser.add_argument(
+        "--log_reg_date",
+        "-d",
+        type=str,
+        default=LOG_REG_DATE,
+        help="Date of csv file creation with the language data." + \
+            "Used to load the right csv file.",
+    )
     return parser.parse_args()
 
 
 def distplot_log_reg_from_csv(
     ind_var1: str, ind_var2: str, dep_vars: list, sample_size: int, 
-    repeat: int, log_reg_date: str, nr: int, max_model_size: int, 
+    repeat: int, log_reg_date: str, bootstrap_id: int, max_model_size: int, 
     max_expr_len: int, language_name: str, lang_gen_date: int
 ):
     '''Make and store distplots of existing logistic regression results.
@@ -100,6 +115,10 @@ def distplot_log_reg_from_csv(
             i.e. the number regressions.
         log_reg_date: A string. The date on which the regression data
             was made.
+        bootstrap_id: An int. Used for loading csv data with logistic
+            regression data. Identifies the bootstrap series for a given
+            date. Multiple regression sessions were done on the same data 
+            to check for convergence.
         max_model_size: An int. Used for loading and storing csv data.
             The maximum model size over which the meaning of quantifiers
             was computed in the language data.
@@ -133,8 +152,8 @@ def distplot_log_reg_from_csv(
     )
     for ax in range(len(dep_vars)):
         csv_filename = utils.make_log_reg_csv_filename(
-            ind_var1, dep_vars[ax], nr, sample_size, repeat, log_reg_date, 
-            max_model_size, max_expr_len, language_name
+            ind_var1, dep_vars[ax], bootstrap_id, sample_size, repeat, 
+            log_reg_date, max_model_size, max_expr_len, language_name
         )
         data = pd.read_csv(csv_fileloc / csv_filename)
         sns.distplot(
@@ -191,7 +210,7 @@ def distplot_log_reg_from_csv(
             max_model_size, max_expr_len, language_name  
     )
     plt.savefig(
-        plot_fileloc / Path(f"{ind_var1}-{nr}-repeat={repeat}-" + \
+        plot_fileloc / Path(f"{ind_var1}-{bootstrap_id}-repeat={repeat}-" + \
         f"samples={sample_size}-{basic_filename}.png"),
         dpi=600
     )
@@ -199,10 +218,10 @@ def distplot_log_reg_from_csv(
 
 
 def mean_and_CI_log_reg(
-    ind_var1: str, ind_var2: str, dep_vars: list, sample_size: int, repeat: int, 
-    log_reg_date: str, nr: int, max_model_size: int, max_expr_len: int, 
-    language_name: str, lang_gen_date: str, orig=False, rand=False, diff=False, 
-    verbose=False
+    ind_var1: str, ind_var2: str, dep_vars: list, sample_size: int, 
+    repeat: int, log_reg_date: str, bootstrap_id: int, max_model_size: int, 
+    max_expr_len: int, language_name: str, lang_gen_date: str, orig=False, 
+    rand=False, diff=False, verbose=False
 ):
     '''Print mean and 95% CI of regression coefficients.
 
@@ -224,8 +243,10 @@ def mean_and_CI_log_reg(
             i.e. the number regressions.
         log_reg_date: A string. The date on which the regression data
             was made.
-        nr: An int. Identifies the bootstrap series. Multiple regression
-            sessions were done on the same data to check for convergence.
+        bootstrap_id: An int. Used for loading csv data with logistic
+            regression results. Identifies the bootstrap series. Multiple 
+            regression sessions were done on the same data to check for 
+            convergence.
         max_model_size: An int. Used for loading and storing csv data.
             The maximum model size over which the meaning of quantifiers
             was computed in the language data.
@@ -257,8 +278,8 @@ def mean_and_CI_log_reg(
         print(dep_var)
         print("-" * 30)
         csv_filename = utils.make_log_reg_csv_filename(
-            ind_var1, dep_var, nr, sample_size, repeat, log_reg_date, 
-            max_model_size, max_expr_len, language_name
+            ind_var1, dep_var, bootstrap_id, sample_size, repeat, 
+            log_reg_date, max_model_size, max_expr_len, language_name
         )
         data = pd.read_csv(csv_fileloc / csv_filename)
         if verbose:
@@ -306,8 +327,8 @@ def mean_and_CI_log_reg(
 
 def log_reg_plot_and_CI(
     scores: list, dep_vars: list, sample_size: int, repeat: int, 
-    log_reg_date: str, nr: int, max_model_size: int, max_expr_len: int, 
-    language_name: str, lang_gen_date: str
+    log_reg_date: str, bootstrap_id: int, max_model_size: int, 
+    max_expr_len: int, language_name: str, lang_gen_date: str
 ):
     '''Make and store distplots and 95% CI of regression coefficients.
 
@@ -322,8 +343,10 @@ def log_reg_plot_and_CI(
             i.e. the number regressions.
         log_reg_date: A string. The date on which the regression data
             was made.
-        nr: An int. Identifies the bootstrap series. Multiple regression
-            sessions were done on the same data to check for convergence.
+        bootstrap_id: An int. Used for loading csv data with logistic
+            regression data. Identifies the bootstrap series for a given
+            date. Multiple regression sessions were done on the same data 
+            to check for convergence.
         max_model_size: An int. Used for loading and storing csv data.
             The maximum model size over which the meaning of quantifiers
             was computed in the language data.
@@ -342,7 +365,8 @@ def log_reg_plot_and_CI(
         max_model_size, language_name, lang_gen_date, log_reg_date
     )
     sys.stdout = utils.Logger(
-            log_reg_plot_fileloc / f"mean_and_CI-{nr}-{log_reg_date}.txt"
+            log_reg_plot_fileloc / 
+            f"mean_and_CI-{bootstrap_id}-{log_reg_date}.txt"
         ) 
     print("-" * 30)
     print("language \t\t", language_name)
@@ -352,7 +376,7 @@ def log_reg_plot_and_CI(
     print("log_reg_date \t", log_reg_date)
     print("repeat \t\t\t", repeat)
     print("sample_size \t", sample_size)
-    print("nr \t\t\t\t", nr)
+    print("bootstrap_id \t\t\t\t", bootstrap_id)
     print("-" * 30)
     print()
     for score in scores: 
@@ -360,11 +384,11 @@ def log_reg_plot_and_CI(
         ind_var2 = f"{score}_shuff_zscore" # complexity random baseline
         distplot_log_reg_from_csv(
             ind_var1, ind_var2, dep_vars, sample_size, repeat, log_reg_date, 
-            nr, max_model_size, max_expr_len, language_name, lang_gen_date
+            bootstrap_id, max_model_size, max_expr_len, language_name, lang_gen_date
         )
         mean_and_CI_log_reg(
             ind_var1, ind_var2, dep_vars, sample_size, repeat, log_reg_date, 
-            nr, max_model_size, max_expr_len, language_name, lang_gen_date, 
+            bootstrap_id, max_model_size, max_expr_len, language_name, lang_gen_date, 
             orig=False, rand=False, diff=True, verbose=False
         )
         print()
@@ -377,17 +401,18 @@ if __name__ == "__main__":
     MAX_EXPR_LEN = 5
     MAX_MODEL_SIZE = 8
     LANG_GEN_DATE = "2020-12-25" 
+    LOG_REG_DATE = "2021-05-05"
+    SAMPLE_SIZE = 5000
     REPEAT = 20000
+    BOOTSTRAP_ID = 1
     args = parse_args()
 
     # Set input-parameters for making distplots.
-    SAMPLE_SIZE = 5000
     QUAN_PROPS = ["monotonicity", "quantity", "conservativity"]
     SCORES = ["ml", "lz"]
-    BOOTSTRAP_ID = 1
 
     log_reg_plot_and_CI(
-        SCORES, QUAN_PROPS, SAMPLE_SIZE, args.repeat, "2021-05-05", 
-        BOOTSTRAP_ID, args.max_model_size, args.max_expr_len, 
+        SCORES, QUAN_PROPS, args.sample_size, args.repeat, args.log_reg_date, 
+        args.bootstrap_id, args.max_model_size, args.max_expr_len, 
         args.language_name, args.lang_gen_date
     )
