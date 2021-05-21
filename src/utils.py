@@ -9,14 +9,11 @@ import re
 import datetime
 import itertools as it
 from pathlib import Path
-from functools import partial
 from collections import defaultdict, Counter
 import dill
 import numpy as np
 import pandas as pd
 import dotenv
-from pathos.multiprocessing import ProcessingPool as Pool
-import operators
 
 
 # Load environment variables from .env (which is in same dir as src).
@@ -30,26 +27,26 @@ RESULTS_DIR_RELATIVE = os.getenv("RESULTS_DIR_RELATIVE")
 RESULTS_DIR = PROJECT_DIR / RESULTS_DIR_RELATIVE
 
 def make_distplot_filename(
-    ind_var: str, nr: int, sample_size: int, repeat: int, plot_date: str, 
-    max_model_size: int, max_expr_len: int, language_name: str
+    ind_var: str, bootstrap_id: int, sample_size: int, repeat: int, 
+    plot_date: str, max_model_size: int, max_expr_len: int, language_name: str
 ):
     basic_filename = make_basic_filename(
         max_model_size, max_expr_len, language_name
     )
-    return f"{ind_var}-{nr}-repeat={repeat}-samples={sample_size}-" + \
-        f"{basic_filename}-{plot_date}.png"
+    return f"{ind_var}-{bootstrap_id}-repeat={repeat}-samples=" + \
+        f"{sample_size}-{basic_filename}-{plot_date}.png"
 
 
 def make_log_reg_csv_filename(
-    ind_var: str, dep_var: str, nr: int, sample_size: int, repeat: int, 
-    log_reg_date: str, max_model_size: int, max_expr_len: int, 
+    ind_var: str, dep_var: str, bootstrap_id: int, sample_size: int, 
+    repeat: int, log_reg_date: str, max_model_size: int, max_expr_len: int, 
     language_name: str
 ):
     basic_filename = make_basic_filename(
         max_model_size, max_expr_len, language_name
     )
-    return f"{ind_var}-{nr}-repeat={repeat}-samples={sample_size}" + \
-        f"-{basic_filename}-{dep_var}-{log_reg_date}.csv"
+    return f"{ind_var}-{bootstrap_id}-repeat={repeat}-samples=" + \
+        f"{sample_size}-{basic_filename}-{dep_var}-{log_reg_date}.csv"
  
 
 def dataframes_to_txt(dataframes: list, file_loc: str, filename: str):
@@ -343,7 +340,8 @@ def make_directory_if_not_present(directory):
 def expr_len(expr: tuple):
     '''Returns expression length, given expresion in tuple format. 
 
-    Expression length is defined as the number of operators in an expression
+    Expression length is defined as the number of operators in an 
+    expression.
 
     '''
     # Base case: when none of the elements of the expr is a tuple.
@@ -412,28 +410,6 @@ def return_if_unique(lang_generator, expr):
         return (output_type, expr, meaning)
 
 
-def generate_unique_expressions_of_len(lang_generator, length):
-    type2expressions = dict(
-        (t, list()) for t in [bool, operators.SetPlaceholder, int, float]
-    )
-    output_type2expression2meaning = dict(
-        (t, dict()) for t in [bool, operators.SetPlaceholder, int, float]
-    )
-    with Pool() as p:
-        to_apply = partial(return_if_unique, lang_generator)
-        for result in p.imap_unordered(
-            to_apply,
-            lang_generator.yield_expressions_of_len(length),
-            chunksize=1000,
-        ):
-            if result is not None:
-                type2expressions[result[0]].append(result[1])
-                output_type2expression2meaning[result[0]][result[1]] = result[
-                    2
-                ]
-    return type2expressions, output_type2expression2meaning
-
-
 def return_meaning_matrix(exps, lang_gen):
     '''Return the extensions (bin reps of meanings) of expressions.
 
@@ -461,22 +437,28 @@ def divide_possibly_zero(array_a, array_b):
 
 def element_wise_binary_entropy(prob_df):
     if isinstance(prob_df, pd.DataFrame):
-        return pd.DataFrame(
-            data=(
-                - prob_df.values * np.log2(prob_df.values)
-                - (1 - prob_df.values) * np.log2(1 - prob_df.values)
-            ),
-            index=prob_df.index,
-            columns=prob_df.columns,
-        ).fillna(0)
+        # Ignore the cases of dividing by zero. This only happens
+        # for the 0 *log2(0) case, which gives 0 * -inf = NaN, and 
+        # that is set to 0 afterwards. This is according to the 
+        # definition of binary entropy: taking log2(0) to be 0.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return pd.DataFrame(
+                data=(
+                    - prob_df.values * np.log2(prob_df.values)
+                    - (1 - prob_df.values) * np.log2(1 - prob_df.values)
+                ),
+                index=prob_df.index,
+                columns=prob_df.columns,
+            ).fillna(0)
     else:
-        return pd.Series(
-            data=(
-                - prob_df.values * np.log2(prob_df.values)
-                - (1 - prob_df.values) * np.log2(1 - prob_df.values)
-            ),
-            index=prob_df.index,
-        ).fillna(0)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return pd.Series(
+                data=(
+                    - prob_df.values * np.log2(prob_df.values)
+                    - (1 - prob_df.values) * np.log2(1 - prob_df.values)
+                ),
+                index=prob_df.index,
+            ).fillna(0)
 
 
 def h(q):
@@ -744,12 +726,3 @@ def pretty_print_expr(expr: tuple):
         )
     else:
         return str(expr)
-
-
-#chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
-def powerset(iterable):
-    '''powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)'''
-    lst = list(iterable)
-    return it.chain.from_iterable(
-        it.combinations(lst, length) for length in range(2, len(lst) + 1)
-    )
