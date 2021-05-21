@@ -180,16 +180,20 @@ def avg_compl_with_vs_without(score: str):
 
     '''
     measures = {
-        "ml": ["expr_length", "ml_zscore"], "lz": ["lempel_ziv", "lz_zscore"]
+        "ml": [("expr_length", "raw scores"), ("ml_zscore", "zscores")], 
+        "lz": [("lempel_ziv","raw scores"), ("lz_zscore", "zscores")]
     }
-    print("-" * 30)
-    print(measures[score][0])
+    line30 = "-" * 30
+    print(line30)
+    print(measures[score][0][0])
     for measure in measures[score]:
-        print("-" * 30)
+        print(f"{line30}\n{measure[1]}\n{line30}")
         for quan_prop in quan_props:
-            avg_with = round(data.loc[data[quan_prop] == 1][measure].mean(), 2)
+            avg_with = round(
+                data.loc[data[quan_prop] == 1][measure[0]].mean(), 2
+            )
             avg_without = round(
-                data.loc[data[quan_prop] == 0][measure].mean(), 2
+                data.loc[data[quan_prop] == 0][measure[0]].mean(), 2
             )
             print(f"{quan_prop} & {avg_with} & {avg_without} \\\\")
         print()
@@ -243,7 +247,7 @@ if __name__ == "__main__":
     LANGUAGE_NAME = "Logical_index"
     MAX_EXPR_LEN = 5
     MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25"
+    LANG_GEN_DATE = "2020-12-25"    
     CSV_DATE = "2021-05-11"
     args = parse_args()
 
