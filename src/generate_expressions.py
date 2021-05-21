@@ -7,7 +7,6 @@ import time
 import datetime
 import argparse
 from pathlib import Path
-import importlib
 import dotenv
 import utils
 import languagegenerator as lg
@@ -22,8 +21,7 @@ PROJECT_DIR = Path(os.getenv("PROJECT_DIR"))
 RESULTS_DIR_RELATIVE = os.getenv("RESULTS_DIR_RELATIVE")
 RESULTS_DIR = PROJECT_DIR / RESULTS_DIR_RELATIVE
 utils.make_directory_if_not_present(RESULTS_DIR)
-
-importlib.reload(lg) 
+ 
 
 def parse_args():
     '''Create argument parser, add arguments, return parsed args.'''
@@ -77,7 +75,7 @@ if __name__ == "__main__":
     clock = date_obj.strftime("%H.%M.%S")
     REDIRECT_STDOUT = True
     LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 3
+    MAX_EXPR_LEN = 5
     MAX_MODEL_SIZE = 8
     args = parse_args()
 
