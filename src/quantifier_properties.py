@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 from lempel_ziv_complexity import lempel_ziv_complexity as lz
-import utils
 
 
 class QuantifierProperty:
@@ -128,11 +127,11 @@ class Monotonicity(QuantifierProperty):
         and False otherwise.
 
         Args:
-            meaning_matrix: A pandas Dataframe of which the index values 
-                are all models up to max_model_size and the column values 
-                are all expressions up to max_expression_length. 
-                Cel (i,j) shows whether model i makes expression j 
-                true (1) or not (0).
+            meaning_matrix: A pandas Dataframe of which the index 
+                values are all models up to max_model_size and the 
+                column values  are all expressions up to 
+                max_expression_length. Cel (i,j) shows whether model 
+                i makes expression j true (1) or not (0).
 
         Returns:
             A pandas Dataframe with boolean values, which are the 
@@ -182,11 +181,11 @@ class Monotonicity(QuantifierProperty):
         if verbose:
             print("making submodles", finish-start)
         # Convert binary matrix to bool to speed computations
-        # TODO: Is this really the case? Why?
         meaning_matrix = meaning_matrix.astype(bool)
         # Temporarily convert index names (tuples) into strings,
-        # to avoid multilevel column problems later on with exp2true_in_any.
-        # Save the original index names to later put back.
+        # to avoid multilevel column problems later on with 
+        # exp2true_in_any. Save the original index names to later 
+        # put back.
         tuple_models = dict()
         for model in meaning_matrix.index:
             tuple_models[str(model)] = model
@@ -195,10 +194,11 @@ class Monotonicity(QuantifierProperty):
         # to fill with the monotonicity signature values.
         # For monotonicity_type = "upwards": 
         # The pair (expression,model) has a true sub_super_model, 
-        # when the model has a *submodel* that makes the espression true.
-        # For monotonicity_type == "downwards": 
+        # when the model has a *submodel* that makes the espression 
+        # true. For monotonicity_type == "downwards": 
         # The pair (expression,model) has a true sub_super_model, 
-        # when the model has a *supermodel* that makes the spression true.
+        # when the model has a *supermodel* that makes the spression 
+        # true.
         expr_model2has_true_sub_super_model = pd.DataFrame(
             np.zeros_like(meaning_matrix.T),
             columns=meaning_matrix.index.values,
@@ -207,24 +207,30 @@ class Monotonicity(QuantifierProperty):
         # Compute all has_true_sub_or_super_model values,
         # and fill in expr_model2has_true_sub_or_super_model.
         for model in tuple_models.values():
-            # Get all sub-/supermodels for this model, 
-            # as strings, to avoid multi-level column issues with exp2true_in_any.
+            # Get all sub-/supermodels for this model, as strings,
+            # to avoid multi-level column issues with exp2true_in_any.
             if monotonicity_type == "upwards": 
                 # Submodels case.
-                sub_super_models = [model]+list(nx.ancestors(model_relation_graph, model))
+                sub_super_models = [model] + list(
+                    nx.ancestors(model_relation_graph, model)
+                )
             elif monotonicity_type == "downwards": 
                 # Supermodels case.
-                sub_super_models = [model]+list(nx.descendants(model_relation_graph, model))
+                sub_super_models = [model] + list(nx.descendants(
+                    model_relation_graph, model)
+                )
             sub_super_models_strings = [
                 str(sub_super_model) for sub_super_model in sub_super_models
             ]
-            # If any of the sub-/supermodels of this model satisfy a given expression, 
-            # then the signature value for that expression is True.
+            # If any of the sub-/supermodels of this model satisfy a  
+            # given expression, then the signature value for that 
+            # expression is True.
             exp2true_in_any = meaning_matrix.loc[
                 sub_super_models_strings
             ].any(0)
             expr_model2has_true_sub_super_model[str(model)] = exp2true_in_any
-        # Transpose to get a matrix with models as index and expressions as column.
+        # Transpose to get a matrix with models as index and  
+        # expressions as column.
         signatures = expr_model2has_true_sub_super_model.T
         # Replace column names strings by their original tuple.
         meaning_matrix.rename(index=tuple_models, inplace=True)
@@ -249,9 +255,10 @@ class Quantity(QuantifierProperty):
 
         Args:
             meaning_matrix: A pandas Dataframe of which the index values 
-                are all models up to max_model_size and the column values are 
-                all expressions up to max_expression_length. Cel (i,j) shows 
-                whether model i makes expression j true (1) or not (0).
+                are all models up to max_model_size and the column 
+                values are all expressions up to max_expression_length. 
+                Cel (i,j) shows whether model i makes expression j 
+                true (1) or not (0).
 
         Returns: A pd.Series with a signature value for each model. 
             The signature value at index i is the signature value
@@ -295,9 +302,10 @@ class Conservativity(QuantifierProperty):
 
         Args:
             meaning_matrix: A pandas Dataframe of which the index values 
-                are all models up to max_model_size and the column values are 
-                all expressions up to max_expression_length. Cel (i,j) shows 
-                whether model i makes expression j true (1) or not (0).
+                are all models up to max_model_size and the column 
+                values are all expressions up to max_expression_length. 
+                Cel (i,j) shows whether model i makes expression 
+                j true (1) or not (0).
 
         Returns:
             A pd.Series with a signature value for each model. 
@@ -324,15 +332,15 @@ class Conservativity(QuantifierProperty):
 
 
 def _make_sub_supermodel_graph(models: list) -> nx.DiGraph:
-    """Make a graph with the supermodel relationships between the models.
+    """Make a graph with the supermodel relationships between models.
 
-    Definition supermodel (using set notation): let model m0 = < A,B,R >, 
-    and model m1 = < A',B',R' >, then m1 is a supermodel of m0 iff 
-    A = A', B \se B', and R \se R', i.e. the relative ordering of the 
-    elements in A and B is presevered in A' and B'. So when going from 
-    a model to a supermodel, the only operations that are allowed, are 
-    to (1) add elements the area BnotA, or (2) move objects 
-    from AnotB to AandB.
+    Definition supermodel (using set notation): 
+    let model m0 = < A,B,R >, and model m1 = < A',B',R' >, then m1 is 
+    a supermodel of m0 iff A = A', B \se B', and R \se R', i.e. the 
+    relative ordering of the elements in A and B is presevered in A' 
+    and B'. So when going from a model to a supermodel, the only 
+    operations that are allowed, are to (1) add elements the area BnotA, 
+    or (2) move objects from AnotB to AandB.
 
     Definition submodel: Model m1 is a submodel of model m0 iff m0 
     is a supermodel of m1. 
@@ -356,8 +364,8 @@ def _make_sub_supermodel_graph(models: list) -> nx.DiGraph:
     edges = []
     # For each model, add an edge (model,supermodel), for each
     # supermodel that can be obtained by changing model by one element.
-    # Allowed changes are: (1) add (0,1) at a position before, between, or
-    # after the elements of model; and (2) change an element of model
+    # Allowed changes are: (1) add (0,1) at a position before, between, 
+    # or after the elements of model; and (2) change an element of model
     # from (1,0) to (1,1).
     for model in models:
         # # Ech model is a supermodel of itself
