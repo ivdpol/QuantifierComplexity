@@ -118,12 +118,23 @@ class LanguageGenerator:
         self.subset_description:
             A string with description of subsets used in this lang gen.
             
-        Note: works for the obvious combinations of subsets for 
-        number_of_subsets is 3 or 4. For number_of_subsets is 1 or 2,
+        Note: works for the obvious choice of subsets for 
+        number_of_subsets is 3 or 4. Where 4 subsets refer to all 4 
+        subarea's of a quantifier model. A model is defined by an 
+        ordered domain M, set A \subset M, and set B \subset M. This 
+        gives 4 "subsets" which refer to the area's AnotB, AandB, 
+        BnotA, and neither. Number_of_subsets = 4 refers to all 
+        area's, number_of_subsets = 3 refers to the area's AnotB, 
+        AandB, and BnotA. For number_of_subsets is 1 or 2,
         check whether it picks the subsets that you are actually using.
 
+        Note: computing the meaning of quantifiers is currently
+        only quarenteed to work for number_of_subsets = 3. For 
+        number_of_subsets = 1, 2, or 4, to work, some adjustments might 
+        need to be made in generate_universe().
+
         '''
-        all_subsets = ["AcapB", "AminB", "BminA", "notAnotB"]
+        all_subsets = ["AnotB", "AandB", "BnotA", "neither"]
         current_subsets_descr = str(self.number_of_subsets)
         for idx, subset in enumerate(all_subsets):
             if idx < self.number_of_subsets:
