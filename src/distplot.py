@@ -384,11 +384,13 @@ def log_reg_plot_and_CI(
         ind_var2 = f"{score}_shuff_zscore" # complexity random baseline
         distplot_log_reg_from_csv(
             ind_var1, ind_var2, dep_vars, sample_size, repeat, log_reg_date, 
-            bootstrap_id, max_model_size, max_expr_len, language_name, lang_gen_date
+            bootstrap_id, max_model_size, max_expr_len, language_name, 
+            lang_gen_date
         )
         mean_and_CI_log_reg(
             ind_var1, ind_var2, dep_vars, sample_size, repeat, log_reg_date, 
-            bootstrap_id, max_model_size, max_expr_len, language_name, lang_gen_date, 
+            bootstrap_id, max_model_size, max_expr_len, language_name, 
+            lang_gen_date, 
             orig=False, rand=False, diff=True, verbose=False
         )
         print()
