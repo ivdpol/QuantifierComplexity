@@ -120,11 +120,11 @@ class LanguageGenerator:
             
         Note: works for the obvious choice of subsets for 
         number_of_subsets is 3 or 4. Where 4 subsets refer to all 4 
-        subarea's of a quantifier model. A model is defined by an 
+        subareas of a quantifier model. A model is defined by an 
         ordered domain M, set A \subset M, and set B \subset M. This 
-        gives 4 "subsets" which refer to the area's AnotB, AandB, 
+        gives 4 "subsets" which refer to the areas AnotB, AandB, 
         BnotA, and neither. Number_of_subsets = 4 refers to all 
-        area's, number_of_subsets = 3 refers to the area's AnotB, 
+        areas, number_of_subsets = 3 refers to the areas AnotB, 
         AandB, and BnotA. For number_of_subsets is 1 or 2,
         check whether it picks the subsets that you are actually using.
 

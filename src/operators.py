@@ -203,7 +203,7 @@ def init_operators(max_model_size: int, number_of_subsets=3) -> dict:
     Args:
         max_model_size: The number of objects in a model. Ranges
             from 1 to max_model_size.
-        number_of_subsets: The number of subarea's in the model.
+        number_of_subsets: The number of subareas in the model.
             At most 4.
             3 refers to: AandB, AnotB, BnotA.
             4 refers to: AandB, AnotB, BnotA, neither.
