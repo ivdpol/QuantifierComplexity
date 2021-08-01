@@ -195,7 +195,14 @@ def avg_compl_with_vs_without(score: str):
             avg_without = round(
                 data.loc[data[quan_prop] == 0][measure[0]].mean(), 2
             )
-            print(f"{quan_prop} & {avg_with} & {avg_without} \\\\")
+            proportion = round(
+                data.loc[data[quan_prop] == 1].shape[0] / data.shape[0], 2
+                )
+            print(
+                f"{quan_prop} & {avg_with} & {avg_without}",
+                f"& {proportion}  \\\\"
+                #& {average} \\\\"
+            )
         print()
 
 
@@ -211,8 +218,7 @@ def expressions_non_satisfying(expr_len: int, data: pd.DataFrame):
     line = "-" * 60
     print(
         f"\n{line}", "\nNon-satisfying epressons of expr-length 2\t", 
-        len((data.loc[data["expr_length"] == 2]).index), 
-        f"expressions\n{line}\n",
+        f"\n{line}\n",
     )
     data.sort_values("expression", inplace=True)
     # Non-monotonic.
@@ -244,12 +250,13 @@ def expressions_non_satisfying(expr_len: int, data: pd.DataFrame):
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 5
-    MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25"    
-    CSV_DATE = "2021-05-05"
-    args = parse_args()
+    LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical"
+    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
+    MAX_MODEL_SIZE = 8 
+    LANG_GEN_DATE = "2020-12-25" 
+    CSV_DATE = "2021-03-23"         # "2021-05-05 for Logical_index
+                                    # "2021-03-23" for Logical     
+    args = parse_args() 
 
     # Set DataFrame print options.
     # pd.set_option("display.max_rows", None)
@@ -262,9 +269,12 @@ if __name__ == "__main__":
         args.lang_gen_date, args.csv_date
     )
 
-    quan_props = [
-        "monotonicity", "quantity", "conservativity"
-    ]
+    if "index" in args.language_name:
+        quan_props = [
+            "monotonicity", "quantity", "conservativity", "mon_quan_cons"
+        ]
+    else: 
+        quan_props = ["monotonicity", "conservativity", "mon_cons"]
 
     # Show expressions of lenght 2 non-satisfying univ props.
     expressions_non_satisfying(2, data)
@@ -281,7 +291,8 @@ if __name__ == "__main__":
     # Print avg complexity quans with versus without univ prop.
     # Print suitable for latex table.
     print(
-        "-" * 60, "\nAverage complexity expression with vs. without univ prop", 
+        "-" * 60, "\nAverage complexity expression with vs. without univ prop,",
+        "\nproportion of quans with univ prop",
         "-" * 60,
     )
     avg_compl_with_vs_without("ml")
