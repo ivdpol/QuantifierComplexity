@@ -1,13 +1,13 @@
 # Quantifiers satisfying semantic universals are simpler
 
-This repository accompanies the following paper:
-* Iris van de Pol, Paul Lodder, Leendert van Maanen, Shane Steinert-Threlkeld, and Jakub Szymanik, *Quantifiers satisfying semantic universals are simpler*, Proceedings of the 43nd Annual Meeting of the Cognitive Science Society (CogSci 2021).
+This repository accompanies section 4 (Experiment 2: Language of Minimal Expression Length) in the following paper:
+* Iris van de Pol, Paul Lodder, Leendert van Maanen, Shane Steinert-Threlkeld, and Jakub Szymanik, *Quantifiers satisfying semantic universals have shorter minimal description length*, submitted.
 
 This project explores the complexity of quantifiers in the explanation of semantic universals, and compares these to earlier results on complexity (see [Van de Pol, Steinert-Threlkeld, Szymanik](https://cogsci.mindmodeling.org/2019/papers/0507/0507.pdf)) and learnability (see [Steinert-Threlkeld and Szymanik](https://semprag.org/index.php/sp/article/viewFile/sp.12.4/pdf)) in the explanation of semantic universals. In particular, we generate a large collection of quantifier expressions, based on a simple yet expressive grammar, and compute their complexities for two measures of complexity—minimal expression length and Lempel-Ziv (LZ) complexity—and whether they adhere to the universal properties of monotonicity, quantity, or conservativity. 
 
-We find that the LZ complexity results do not scale up robustly with respect to earlier findings, and we find that in terms of minimal expression length, quantifiers satisfying semantic universals are less complex: they have a shorter minimal description length.
+We find that the LZ complexity results do not scale up robustly with respect to earlier findings, and we find that in terms of minimal expression length, quantifiers satisfying semantic universals are less complex: they have a shorter minimal description length. These results suggest that the simplicity of quantifier meanings, in terms of their minimal description length, partially explains the presence of semantic universals in the domain of quantifiers.
 
-This repository contains all the code needed to replicate the data reported in that paper. It also contains the data and figures that are reported therein.
+This repository contains all the code needed to replicate the data reported in that section. It also contains the data and figures that are reported therein.
 
 If you have any questions and/or want to extend the code base and/or generate your own quantifier complexity data, feel free to get in touch!
 
@@ -47,7 +47,7 @@ Then by using the LanguageGenerator class method `gen_all_expr_and_their_scores(
 For each of those expressions their adherence to universal properties and their complexity scores are computed.
 The LanguageGenerator object is stored in a `.dill` file, and the expressions and their scores are stored in a `.csv` file.
 
-Before analyzing the data, use [src/adjust_csv.py](src/adjust_csv.py) for some post hoc additions to the `.csv` file with the language data (changing graded scores into binary and adding standardized and randomly shuffled scores).
+Before analyzing the data, use [src/adjust_csv.py](src/adjust_csv.py) for some post hoc additions to the `.csv` file with the language data (changing graded scores into binary, adding a score for having all three properties, mon_quan_cons, and adding standardized and randomly shuffled scores).
 
 ### Analyzing and plotting the data
 
@@ -62,7 +62,7 @@ To produce the logistic regression plots reported in the paper use [src/distplot
 python distplot.py --max_expr_len 5 --max_model_size 8 --language_name "Logical_index" --lang_gen_date "2020-12-25" --log_reg_date "2021-05-05" --sample_size 5000 --repeat 20000 --bootstrap_id 1
 ```
 
-This will plot the distribution of the complexity coefficients for a bootstrapped logistic regression series with 20,000 runs, which are stored in `.csv` files in [results/Language=Logical_index-max_model_size=8/2020-12-25/analysis/log_regression/2021-05-05/csv/](results/Language=Logical_index-max_model_size=8/2020-12-25/analysis/log_regression/2021-05-05/csv/).
+This will plot the distribution of the complexity coefficients for a bootstrapped logistic regression series with 20,000 runs, and sample size 5000, which are stored in `.csv` files in [results/Language=Logical_index-max_model_size=8/2020-12-25/analysis/log_regression/2021-05-05/csv/](results/Language=Logical_index-max_model_size=8/2020-12-25/analysis/log_regression/2021-05-05/csv/).
 It also prints and stores the mean values and the 95% CI of the coefficients in a `.txt` file.
 
 To run your own logistic regression series and store the results in `.csv` files, use [src/logistic_regression.py](src/logistic_regression.py).
