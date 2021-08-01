@@ -1,4 +1,4 @@
-# Quantifiers satisfying semantic universals are simpler
+# Quantifiers satisfying semantic universals have shorter minimal description length
 
 This repository accompanies section 4 (Experiment 2: Language of Minimal Expression Length) in the following paper:
 * Iris van de Pol, Paul Lodder, Leendert van Maanen, Shane Steinert-Threlkeld, and Jakub Szymanik, *Quantifiers satisfying semantic universals have shorter minimal description length*, submitted.
