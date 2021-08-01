@@ -231,13 +231,14 @@ def bootstrap_regression(
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 5 
+    LANGUAGE_NAME = "Logical_index" # "Logical_index"       # "Logical" 
+    MAX_EXPR_LEN = 5                # 5 for Logical_index   # 7 for Logical
     MAX_MODEL_SIZE = 8
     LANG_GEN_DATE = "2020-12-25"
-    CSV_DATE = "2021-05-05"
+    CSV_DATE = "2021-05-05"         # "2021-05-05 for Logical_index
+                                    # "2021-03-23" for Logical
     SAMPLE_SIZE = 5000
-    REPEAT = 20000
+    REPEAT = 100 #20000c
     BOOTSTRAP_ID = 1
     args = parse_args()
     
@@ -252,7 +253,13 @@ if __name__ == "__main__":
     SCORES = ["ml", "lz"]
     # "ml" := minimal expression length
     # "lz" := Lempel Ziv complexity
-    QUAN_PROPS = ["monotonicity", "quantity", "conservativity"]
+    if "index" in args.language_name:
+        quan_props = [
+             "mon_quan_cons", "monotonicity", "quantity", "conservativity"
+        ]
+    else: 
+        quan_props = ["mon_cons", "monotonicity", "conservativity"]
+    QUAN_PROPS = quan_props
     
     bootstrap_regression(
         args.csv_date, SCORES, QUAN_PROPS, REGRESSION_FUNC,
