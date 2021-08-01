@@ -170,7 +170,7 @@ def distplot_log_reg_from_csv(
         )
     for ax in axs.flat:
         ax.set_ylim(0, 15)
-        ax.set_xlim(-0.6, 0.6)    
+        ax.set_xlim(-1, 1)    
     axs[0, 0].set_ylabel("Density", fontsize=14)
     axs[1, 0].set_ylabel("Density", fontsize=14)
 
@@ -376,7 +376,7 @@ def log_reg_plot_and_CI(
     print("log_reg_date \t", log_reg_date)
     print("repeat \t\t\t", repeat)
     print("sample_size \t", sample_size)
-    print("bootstrap_id \t\t\t\t", bootstrap_id)
+    print("bootstrap_id \t", bootstrap_id)
     print("-" * 30)
     print()
     for score in scores: 
@@ -399,18 +399,26 @@ def log_reg_plot_and_CI(
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 5
-    MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25" 
-    LOG_REG_DATE = "2021-05-05"
+    LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical" 
+    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
+    MAX_MODEL_SIZE = 8      
+    LANG_GEN_DATE = "2020-12-25"    
+    LOG_REG_DATE = "2021-03-23"     # "2021-05-05 for Logical_index
+                                    # "2021-03-23" for Logical
     SAMPLE_SIZE = 5000
     REPEAT = 20000
     BOOTSTRAP_ID = 1
     args = parse_args()
 
+    if "index" in args.language_name:
+        quan_props = [
+             "mon_quan_cons", "monotonicity", "quantity", "conservativity"
+        ]
+    else: 
+        quan_props = ["mon_cons", "monotonicity", "conservativity"]
+
     # Set input-parameters for making distplots.
-    QUAN_PROPS = ["monotonicity", "quantity", "conservativity"]
+    QUAN_PROPS = quan_props
     SCORES = ["ml", "lz"]
 
     log_reg_plot_and_CI(
