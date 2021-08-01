@@ -139,11 +139,11 @@ def mon_quan_cons(row):
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 5
+    LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical"
+    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
     MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25"
-    CSV_DATE = "2021-01-16"
+    LANG_GEN_DATE = "2020-12-25"    
+    CSV_DATE = "2021-01-16"         
     args = parse_args()
 
     # Set DataFrame print options.
@@ -164,6 +164,18 @@ if __name__ == "__main__":
         # Add column with binary scores under original name: prop.
         # Prop == 1 iff g_prop == 1.0, and prop == 0 otherwise.
         data[prop] = np.where(data['g_' + prop[0:4]] == 1.0, 1, 0)
+
+    if "index" in args.language_name:
+        # For language data with index operator.
+        data["mon_quan_cons"] = data.apply(
+            lambda row: mon_quan_cons(row), axis=1
+        )
+    else:
+        # For language data without index operator. Quantity is 
+        # alway 1, therefore not explicitly mentioned.
+        data["mon_cons"] = data.apply(
+            lambda row: mon_quan_cons(row), axis=1
+        )
 
     shuff_and_standardize_lz(data, verbose=False)
     shuff_and_standardize_ml(data, verbose=False)
