@@ -74,8 +74,8 @@ if __name__ == "__main__":
     date_and_time = date_obj.strftime("%Y-%m-%d %H:%M:%S")
     clock = date_obj.strftime("%H.%M.%S")
     REDIRECT_STDOUT = True
-    LANGUAGE_NAME = "Logical_index"
-    MAX_EXPR_LEN = 5
+    LANGUAGE_NAME = "Logical_index" # "Logical_index"       # "Logical" 
+    MAX_EXPR_LEN = 5                # 5 for Logical_index   # 7 for Logical
     MAX_MODEL_SIZE = 8
     args = parse_args()
 
