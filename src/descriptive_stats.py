@@ -217,7 +217,7 @@ def expressions_non_satisfying(expr_len: int, data: pd.DataFrame):
     '''
     line = "-" * 60
     print(
-        f"\n{line}", "\nNon-satisfying epressons of expr-length 2\t", 
+        f"\n{line}", "\nNon-satisfying expressions of expr-length 2\t", 
         f"\n{line}\n",
     )
     data.sort_values("expression", inplace=True)
@@ -291,9 +291,8 @@ if __name__ == "__main__":
     # Print avg complexity quans with versus without univ prop.
     # Print suitable for latex table.
     print(
-        "-" * 60, "\nAverage complexity expression with vs. without univ prop,",
-        "\nproportion of quans with univ prop",
-        "-" * 60,
+        f"\n{line}\nAverage complexity expression with vs. without univ prop",
+        f"\nproportion of quans with univ prop\n{line}\n",
     )
     avg_compl_with_vs_without("ml")
     avg_compl_with_vs_without("lz")
