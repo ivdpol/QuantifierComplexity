@@ -306,13 +306,13 @@ class LanguageGenerator:
                                     ] = unique_meaning
             self.max_expr_len = cur_expr_len
             new = sum(map(len, self.len2type2expr[cur_expr_len].values()))
+            if compute_scores:
+                self.get_big_data_table()
             if self.store_at_each_length:
                 print()
                 self.write_expressions()
                 # Compute and store all scores for all expressions so 
                 # far.
-            if compute_scores:
-                self.get_big_data_table()
             finish = time.time()
             print("running_time =", (finish-start) / 60)
 
