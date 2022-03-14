@@ -275,7 +275,7 @@ if __name__ == "__main__":
     LANGUAGE_NAME = "Logical" 		# "Logical_index"       # "Logical" 
     MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
     MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2022-03-12"    #"2022-03-12"  			#"2022-03-12"     
+    LANG_GEN_DATE = "2022-03-12"    #"2022-03-11"  			#"2022-03-11"     
     args = parse_args()
 
     REDIRECT_STDOUT = True
@@ -312,8 +312,7 @@ if __name__ == "__main__":
 
     # Load language generator object.
     lang_gen = utils.load_lang_gen_for(
-    	args.language_name, args.max_model_size, args.lang_gen_date,
-    	max_expression_length=args.max_expr_len
+    	args.language_name, args.max_model_size, args.lang_gen_date
     )
     print("\nBIG DATA TABLE a.k.a. ORIGINAL DATA\n", lang_gen.big_data_table)
 
