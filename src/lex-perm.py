@@ -1,5 +1,10 @@
 """
 This file is part of QuantifierComplexity.
+
+Lex-perm.py imports a language generator object (stored in a .dill 
+file), computes lexical permutations over quantifier extensions 
+(binary meaning seq) and computes and stores the lempel_ziv 
+complexities over these permutations.
 """
 import os
 import sys
