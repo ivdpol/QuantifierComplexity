@@ -576,7 +576,8 @@ def load_expressions_for(
 
 
 def load_lang_gen_for(
-    language_name: str, max_model_size: int, max_expression_length=None
+    language_name: str, max_model_size: int, lang_gen_date: str,
+    max_expression_length=None
 ):
     '''Load language generator.
 
@@ -594,18 +595,19 @@ def load_lang_gen_for(
             language. 
 
     '''
-    language_dir = (
+    lang_gen_dir = (
         Path(PROJECT_DIR)
         / Path(RESULTS_DIR_RELATIVE)
         / make_language_dir_name(max_model_size, language_name)
+        / lang_gen_date / "language_generators"
     )
     if max_expression_length is None:
         to_load = max(
-            [f for f in os.listdir(language_dir) if "lang" in f],
+            [f for f in os.listdir(lang_gen_dir) if "lang" in f],
             key=lambda x: re.findall("[0-9]+", x)[-1],
         )
     else:
-        for f in os.listdir(language_dir):
+        for f in os.listdir(lang_gen_dir):
             if "lang" not in f:
                 continue
             if re.findall("[0-9]+", f):
@@ -615,17 +617,17 @@ def load_lang_gen_for(
                     break
         else:
             print("Could not find file with given settings")
-        # print(os.listdir(language_dir))
+        # print(os.listdir(lang_gen_dir))
         # print(
-        #     [[-1] for f in os.listdir(language_dir)]
+        #     [[-1] for f in os.listdir(lang_gen_dir)]
         # )
         # to_load = next(
         #     f
-        #     for f in os.listdir(language_dir)
+        #     for f in os.listdir(lang_gen_dir)
         #     if "lang" in f
         #     and re.findall("[0-9]+", f)[-1] == str(max_expression_length)
         # )
-    with open(Path(language_dir) / to_load, "rb") as f:
+    with open(Path(lang_gen_dir) / to_load, "rb") as f:
         out = dill.load(f)
     return out
 
