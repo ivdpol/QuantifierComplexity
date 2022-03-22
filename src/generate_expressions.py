@@ -46,7 +46,7 @@ def parse_args():
         "-j",
         type=str,
         default=LANGUAGE_NAME,
-        help="Name of json file (when adding .sjon) that specifies " + \
+        help="Name of json file (when adding .json) that specifies " + \
             "settings",
     )
     parser.add_argument(
