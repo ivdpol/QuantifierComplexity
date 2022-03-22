@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import dotenv
 import matplotlib.pyplot as plt  
+import matplotlib.lines as mlines
 import pandas as pd
 import utils
 
@@ -129,18 +130,33 @@ def plot_perc_with_prop_per_expr_len(
         )
         contingency_tables[prop] = contingency_table
     fig, axs = plt.subplots(1, constrained_layout=True)
+    markers = [".", "s", "o", "^"]
+    # https://matplotlib.org/stable/api/markers_api.html
+    colors = ["#e66101", "#fdb863", "#5e3c99", "#b2abd2"]
+    # Colorbrew colors with diverging colorscheme:
+    # colorblind safe, print friendly, photocopy safe.
+    # From https://colorbrewer2.org/#type=diverging&scheme=PuOr&n=4.
+    # "#e66101" = dark orange, "#fdb863" = light orange 
+    # "#b2abd2" = light purple, "#5e3c99" = dark purple
+    color_idx = 0
     for prop in quan_props:
+        color = colors[color_idx]
+        marker = markers[color_idx]
         contingency_tables[prop].drop("total", inplace=True)
         axs.scatter(
             x=contingency_tables[prop].index, 
-            y=contingency_tables[prop]["(" + prop[0:4] + "=1)/total"]       
+            y=contingency_tables[prop]["(" + prop[0:4] + "=1)/total"],
+            color=color,
+            marker=marker
         )
         axs.plot(
             contingency_tables[prop].index, 
-            contingency_tables[prop]["(" + prop[0:4] + "=1)/total"]
+            contingency_tables[prop]["(" + prop[0:4] + "=1)/total"],
+            color=color
         )
         axs.set_xlabel("Minimal expression length", fontsize=16)
         axs.set_xticks(range(1, args.max_expr_len + 1))
+        color_idx += 1
     axs.set_ylabel("% Quantifiers with universal property", fontsize=16)
     # Make legend shapes into rectangles, see:
     # https://stackoverflow.com/questions/40672088/matplotlib
@@ -155,7 +171,16 @@ def plot_perc_with_prop_per_expr_len(
         legend_labels = [
             "Monotonicity", "Conservativity", "Both properties"
         ]
-    plt.legend(legend_labels, fontsize=16)
+    legend_handles = []
+    for i, _ in enumerate(quan_props):
+        legend_handles.append(
+            mlines.Line2D([], [],
+                color=colors[i],
+                marker=markers[i],
+                label=legend_labels[i]
+            )
+        )
+    plt.legend(handles=legend_handles, fontsize=16)
     file_loc = utils.make_descriptive_stats_path( 
         max_model_size, language_name, lang_gen_date
     )
@@ -181,7 +206,10 @@ def avg_compl_with_vs_without(score: str):
     '''
     measures = {
         "ml": [("expr_length", "raw scores"), ("ml_zscore", "zscores")], 
-        "lz": [("lempel_ziv","raw scores"), ("lz_zscore", "zscores")]
+        "lz_0": [("lempel_ziv_0","raw scores"), ("lz_0_zscore", "zscores")],
+        "lz_1": [("lempel_ziv_1","raw scores"), ("lz_1_zscore", "zscores")],
+        "lz_2": [("lempel_ziv_2","raw scores"), ("lz_2_zscore", "zscores")],
+        "lz_mean": [("lempel_ziv_mean","raw scores"), ("lz_mean_zscore", "zscores")]
     }
     line30 = "-" * 30
     print(line30)
@@ -253,9 +281,9 @@ if __name__ == "__main__":
     LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical"
     MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
     MAX_MODEL_SIZE = 8 
-    LANG_GEN_DATE = "2020-12-25" 
-    CSV_DATE = "2021-03-23"         # "2021-05-05 for Logical_index
-                                    # "2021-03-23" for Logical     
+    LANG_GEN_DATE = "2022-03-11"    # "2022-03-11"  # "2020-12-25" 
+    CSV_DATE = "2022-03-16"         # "2022-03-16"  # "2021-05-05 for Logical_index
+                                                    # "2021-03-23" for Logical     
     args = parse_args() 
 
     # Set DataFrame print options.
@@ -268,6 +296,8 @@ if __name__ == "__main__":
         args.max_model_size, args.max_expr_len, args.language_name, 
         args.lang_gen_date, args.csv_date
     )
+
+    print(data)
 
     if "index" in args.language_name:
         quan_props = [
@@ -295,10 +325,59 @@ if __name__ == "__main__":
         f"\nproportion of quans with univ prop\n{line}\n",
     )
     avg_compl_with_vs_without("ml")
-    avg_compl_with_vs_without("lz")
+    avg_compl_with_vs_without("lz_0")
+    avg_compl_with_vs_without("lz_1")
+    avg_compl_with_vs_without("lz_2")
+    avg_compl_with_vs_without("lz_mean")
     print(f"{line}\nMax and avg\n{line}")
-    print("max_ml\t", data["expr_length"].max())
+    print("max_ml\t\t", data["expr_length"].max())
     line30 = "-" * 30
-    print("avg_ml\t", round(data["expr_length"].mean(), 2), f"\n{line30}")
-    print("max_lz\t", round(data["lempel_ziv"].max(), 2))
-    print("avg_lz\t", round(data["lempel_ziv"].mean(), 2), "\n")
+    print("avg_ml\t\t", round(data["expr_length"].mean(), 2), f"\n{line30}")
+    print("max_lz\t\t", round(data["lempel_ziv"].max(), 2))
+    print("avg_lz\t\t", round(data["lempel_ziv"].mean(), 2), "\n")
+    print("max_lz_1\t", round(data["lempel_ziv_1"].max(), 2))
+    print("avg_lz_1\t", round(data["lempel_ziv_1"].mean(), 2), "\n")
+    print("max_lz_2\t", round(data["lempel_ziv_2"].max(), 2))
+    print("avg_lz_2\t", round(data["lempel_ziv_2"].mean(), 2), "\n")
+    print("max_lz_m\t", round(data["lempel_ziv_mean"].max(), 2))
+    print("avg_lz_m\t", round(data["lempel_ziv_mean"].mean(), 2), "\n")
+
+# 5
+# LZ_mean
+# monotonicity & -0.22 & 0.08 & 0.28  \\
+# quantity & 0.02 & -0.0 & 0.15  \\
+# conservativity & 0.16 & -0.02 & 0.12  \\
+# mon_quan_cons & 0.16 & -0.0 & 0.02  \\
+# LZ_0
+# monotonicity & -0.19 & 0.08 & 0.28  \\
+# quantity & 0.03 & -0.0 & 0.15  \\
+# conservativity & 0.18 & -0.02 & 0.12  \\
+# mon_quan_cons & 0.16 & -0.0 & 0.02  \\
+# LZ_1
+# monotonicity & -0.23 & 0.09 & 0.28  \\
+# quantity & 0.0 & -0.0 & 0.15  \\
+# conservativity & 0.19 & -0.02 & 0.12  \\
+# mon_quan_cons & 0.16 & -0.0 & 0.02  \\
+# LZ_2
+# monotonicity & -0.23 & 0.09 & 0.28  \\
+# quantity & 0.03 & -0.0 & 0.15  \\
+# conservativity & 0.12 & -0.02 & 0.12  \\
+# mon_quan_cons & 0.15 & -0.0 & 0.02  \\
+
+# 7
+# LZ_mean
+# monotonicity & -0.05 & 0.03 & 0.33  \\
+# conservativity & 0.34 & -0.06 & 0.14  \\
+# mon_cons & 0.22 & -0.02 & 0.08  \\
+# LZ_0
+# monotonicity & -0.05 & 0.02 & 0.33  \\
+# conservativity & 0.34 & -0.06 & 0.14  \\
+# mon_cons & 0.22 & -0.02 & 0.08  \\
+# LZ_1
+# monotonicity & -0.05 & 0.03 & 0.33  \\
+# conservativity & 0.37 & -0.06 & 0.14  \\
+# mon_cons & 0.24 & -0.02 & 0.08  \\
+# LZ_2
+# monotonicity & -0.05 & 0.03 & 0.33  \\
+# conservativity & 0.33 & -0.06 & 0.14  \\
+# mon_cons & 0.19 & -0.02 & 0.08  \\
