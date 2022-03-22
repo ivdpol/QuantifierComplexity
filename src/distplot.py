@@ -409,7 +409,7 @@ if __name__ == "__main__":
     LANGUAGE_NAME = "Logical"     # "Logical_index"      # "Logical" 
     MAX_EXPR_LEN = 7              # 5 for Logical_index  # 7 for Logical
     MAX_MODEL_SIZE = 8     
-     
+
     LANG_GEN_DATE = "2022-03-11"   
     # LANG_GEN_DATE = "2020-12-25" for SCORES = ["ml"]
     # LANG_GEN_DATE = "2022-03-11" 
@@ -445,7 +445,9 @@ if __name__ == "__main__":
     # ["lz_0", "lz_1", "lz_2", "lz_mean"] these are the names for the
     # LZ scores based on different lexicographical permutations of the
     # quantifier representations (based on different lexicographical 
-    # orderings of the models)
+    # orderings of the models). 
+    # score lz_mean stands for the mean value over lz_0, lz_1, and lz_2.
+    
 
     log_reg_plot_and_CI(
         SCORES, QUAN_PROPS, args.sample_size, args.repeat, args.log_reg_date, 
