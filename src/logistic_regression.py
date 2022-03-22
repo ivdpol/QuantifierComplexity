@@ -233,12 +233,12 @@ if __name__ == "__main__":
     # Default values for argparse args.
     LANGUAGE_NAME = "Logical_index" # "Logical_index"       # "Logical" 
     MAX_EXPR_LEN = 5                # 5 for Logical_index   # 7 for Logical
-    MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25"
-    CSV_DATE = "2021-05-05"         # "2021-05-05 for Logical_index
-                                    # "2021-03-23" for Logical
-    SAMPLE_SIZE = 5000
-    REPEAT = 100 #20000c
+    MAX_MODEL_SIZE = 8 # 8
+    LANG_GEN_DATE = "2022-03-11"    # "2022-03-11"  # "2020-12-25"
+    CSV_DATE = "2022-03-16"         # "2022-03-16"  # "2021-05-05 for Logical_index
+                                                    # "2021-03-23" for Logical
+    SAMPLE_SIZE = 5000  # 5000
+    REPEAT = 20000      # 20000
     BOOTSTRAP_ID = 1
     args = parse_args()
     
@@ -250,9 +250,16 @@ if __name__ == "__main__":
 
     # Set input-parameters for bootstrap_regression function.
     REGRESSION_FUNC = bin_logistic_regression
-    SCORES = ["ml", "lz"]
+    SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
+    # ["ml"]
+    # ["lz_0", "lz_1", "lz_2", "lz_mean"] these are the names for the
+    # LZ scores based on different lexicographical permutations of the
+    # quantifier representations (based on different lexicographical 
+    # orderings of the models). 
+    # score lz_mean stands for the mean value over lz_0, lz_1, and lz_2.
     # "ml" := minimal expression length
     # "lz" := Lempel Ziv complexity
+
     if "index" in args.language_name:
         quan_props = [
              "mon_quan_cons", "monotonicity", "quantity", "conservativity"
