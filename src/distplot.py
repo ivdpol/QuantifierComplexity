@@ -447,8 +447,9 @@ if __name__ == "__main__":
     # quantifier representations (based on different lexicographical 
     # orderings of the models). 
     # score lz_mean stands for the mean value over lz_0, lz_1, and lz_2.
+    # "ml" := minimal expression length
+    # "lz" := Lempel Ziv complexity
     
-
     log_reg_plot_and_CI(
         SCORES, QUAN_PROPS, args.sample_size, args.repeat, args.log_reg_date, 
         args.bootstrap_id, args.max_model_size, args.max_expr_len, 
