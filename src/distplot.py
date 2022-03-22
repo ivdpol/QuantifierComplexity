@@ -441,8 +441,11 @@ if __name__ == "__main__":
     # Set input-parameters for making distplots.
     QUAN_PROPS = quan_props
     SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
-    #["lz_0", "lz_1", "lz_2", "lz_mean"] 
-    #["ml"]
+    # ["ml"]
+    # ["lz_0", "lz_1", "lz_2", "lz_mean"] these are the names for the
+    # LZ scores based on different lexicographical permutations of the
+    # quantifier representations (based on different lexicographical 
+    # orderings of the models)
 
     log_reg_plot_and_CI(
         SCORES, QUAN_PROPS, args.sample_size, args.repeat, args.log_reg_date, 
