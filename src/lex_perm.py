@@ -272,10 +272,10 @@ if __name__ == "__main__":
     date_and_time = date_obj.strftime("%Y-%m-%d %H:%M:%S")
     print("\nSTART =", date_and_time)
     
-    LANGUAGE_NAME = "Logical" 		# "Logical_index"       # "Logical" 
-    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
+    LANGUAGE_NAME = "Logical_index" # "Logical_index"     	# "Logical" 
+    MAX_EXPR_LEN = 5                # 5 for Logical_index 	# 7 for Logical
     MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2022-03-12"    #"2022-03-11"  			#"2022-03-11"     
+    LANG_GEN_DATE = "2022-03-11"        
     args = parse_args()
 
     REDIRECT_STDOUT = True
@@ -288,9 +288,10 @@ if __name__ == "__main__":
         csv_path = Path(
             RESULTS_DIR / language_dir_name / args.lang_gen_date / "csv" 
         )
-        stdout_dir = csv_path / "stdout" 
+        stdout_dir = csv_path / date / "stdout"
         utils.make_directory_if_not_present(csv_path)
-        utils.make_directory_if_not_present(stdout_dir)
+        utils.make_directory_if_not_present(csv_path / date)
+        utils.make_directory_if_not_present(csv_path / date / "stdout")
         sys.stdout = utils.Logger(
             stdout_dir / f"{args.max_expr_len}=max-expr-len_time={clock}.txt"
         )
@@ -370,8 +371,6 @@ if __name__ == "__main__":
     concat_data = pd.concat([lang_gen.big_data_table, perm_data], axis=1)
     print("\nORIGINAL DATA\n", lang_gen.big_data_table)
     print("\nCONCAT\n", concat_data, "\n")
-    check = lang_gen.big_data_table["lempel_ziv"] == perm_data["lempel_ziv_0"]
-    print("\nCHECK = lempel-ziv == lempel_ziv_0 =", check.all(), "\n")
 
     # Store concatenad new and old data as csv.
     utils.store_language_data_to_csv(
@@ -379,6 +378,8 @@ if __name__ == "__main__":
         args.language_name, args.lang_gen_date, verbose=True
     )
     
+    check = lang_gen.big_data_table["lempel_ziv"] == perm_data["lempel_ziv_0"]
+    print("\nCHECK = lempel-ziv == lempel_ziv_0 =", check.all())
     print("\nEND =", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     finish = time.time()
     print("\nrunning time =", (finish-start) / 60, "\n")
