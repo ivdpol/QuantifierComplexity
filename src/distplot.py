@@ -151,21 +151,27 @@ def distplot_log_reg_from_csv(
         2, len(dep_vars), constrained_layout=True, figsize=costum_figsize
     )
     for ax in range(len(dep_vars)):
+        colors = ["#e66101", "#fdb863", "#b2abd2", "#5e3c99"]
+        # Colorbrew colors with diverging colorscheme:
+        # colorblind safe, print friendly, photocopy safe.
+        # From https://colorbrewer2.org/#type=diverging&scheme=PuOr&n=4.
+        # "#e66101" = dark orange, "#fdb863" = light orange 
+        # "#b2abd2" = light purple, "#5e3c99" = dark purple
         csv_filename = utils.make_log_reg_csv_filename(
             ind_var1, dep_vars[ax], bootstrap_id, sample_size, repeat, 
             log_reg_date, max_model_size, max_expr_len, language_name
         )
         data = pd.read_csv(csv_fileloc / csv_filename)
         sns.distplot(
-            data[f"coef_{ind_var1}"], color="tab:blue", ax=axs[0, ax], 
+            data[f"coef_{ind_var1}"], color="#fdb863", ax=axs[0, ax], 
             label="Original"
         )
         sns.distplot(
-            data[f"coef_{ind_var2}"], color="tab:orange", ax=axs[0, ax], 
+            data[f"coef_{ind_var2}"], color="#e66101", ax=axs[0, ax], 
             label="Randomly shuffled"
         )
         sns.distplot(
-            data[f"{ind_var1}-{ind_var2}"], ax=axs[1, ax], color="tab:purple", 
+            data[f"{ind_var1}-{ind_var2}"], ax=axs[1, ax], color="#5e3c99", 
             label="Original - Randomly shuffled"
         )
     for ax in axs.flat:
@@ -184,11 +190,11 @@ def distplot_log_reg_from_csv(
     # https://matplotlib.org/3.1.1/gallery/text_labels_and_
     # annotations/custom_legends.html
     custom_lines0 = [
-        Patch(color="tab:blue", label="Original data"),
-        Patch(color="tab:orange", label="Randomly shuffled")
+        Patch(color="#fdb863", label="Original data"),
+        Patch(color="#e66101", label="Randomly shuffled")
     ]
     custom_lines1 = [
-        Patch(color='tab:purple', label="Difference per sample")
+        Patch(color="#5e3c99", label="Difference per sample")
     ]
     for ax in range(len(dep_vars)):
         axs[0, ax].set_xlabel("")
@@ -364,9 +370,10 @@ def log_reg_plot_and_CI(
     log_reg_plot_fileloc = utils.make_log_reg_plot_path(
         max_model_size, language_name, lang_gen_date, log_reg_date
     )
+    scores_str = "_".join(scores)
     sys.stdout = utils.Logger(
             log_reg_plot_fileloc / 
-            f"mean_and_CI-{bootstrap_id}-{log_reg_date}.txt"
+            f"{scores_str}-mean_and_CI-{bootstrap_id}-{log_reg_date}.txt"
         ) 
     print("-" * 30)
     print("language \t\t", language_name)
@@ -399,15 +406,29 @@ def log_reg_plot_and_CI(
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical" 
-    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
-    MAX_MODEL_SIZE = 8      
-    LANG_GEN_DATE = "2020-12-25"    
-    LOG_REG_DATE = "2021-03-23"     # "2021-05-05 for Logical_index
-                                    # "2021-03-23" for Logical
-    SAMPLE_SIZE = 5000
-    REPEAT = 20000
-    BOOTSTRAP_ID = 1
+    LANGUAGE_NAME = "Logical"     # "Logical_index"      # "Logical" 
+    MAX_EXPR_LEN = 7              # 5 for Logical_index  # 7 for Logical
+    MAX_MODEL_SIZE = 8     
+     
+    LANG_GEN_DATE = "2022-03-11"   
+    # LANG_GEN_DATE = "2020-12-25" for SCORES = ["ml"]
+    # LANG_GEN_DATE = "2022-03-11" 
+        # for SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
+
+    LOG_REG_DATE = "2022-03-16"     
+    # LOG_REG_DATE = "2021-05-05" 
+        # for SCORES = ["ml"] and LANGUAGE_NAME = "Logical_index"
+    # LOG_REG_DATE = "2021-03-23" 
+        # for SCORES = ["ml"] and LANGUAGE_NAME = "Logical"
+    # LOG_REG_DATE = "2022-03-16" 
+        # for SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
+
+    SAMPLE_SIZE = 5000      #5000
+    REPEAT = 20000          #20000
+    BOOTSTRAP_ID = 1 
+    # BOOTSTRAP_ID = 1 for SCORES = ["ml"]
+    # BOOTSTRAP_ID = 3 for SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
+
     args = parse_args()
 
     if "index" in args.language_name:
@@ -419,7 +440,9 @@ if __name__ == "__main__":
 
     # Set input-parameters for making distplots.
     QUAN_PROPS = quan_props
-    SCORES = ["ml", "lz"]
+    SCORES = ["lz_0", "lz_1", "lz_2", "lz_mean"]
+    #["lz_0", "lz_1", "lz_2", "lz_mean"] 
+    #["ml"]
 
     log_reg_plot_and_CI(
         SCORES, QUAN_PROPS, args.sample_size, args.repeat, args.log_reg_date, 
