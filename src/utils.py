@@ -88,17 +88,19 @@ def make_log_reg_plot_path(
     max_model_size: int, language_name: str, lang_gen_date: str,
     log_reg_date: str
 ):
-    '''Folder withing analysis repository.'''
-    if not log_reg_date:
-        log_reg_date = datetime.datetime.now().strftime("%Y-%m-%d")
+    '''Folder within analysis repository.'''
     analysis_path = make_analysis_path(
         max_model_size, language_name, lang_gen_date
     )
     log_reg_path = analysis_path / "log_regression" 
+    plot_date = datetime.datetime.now().strftime("%Y-%m-%d")
     make_directory_if_not_present(log_reg_path)
     make_directory_if_not_present(log_reg_path / log_reg_date)
     make_directory_if_not_present(log_reg_path / log_reg_date / "plots")
-    return log_reg_path / log_reg_date / "plots"
+    make_directory_if_not_present(
+        log_reg_path / log_reg_date / "plots" / plot_date
+    )
+    return log_reg_path / log_reg_date / "plots" / plot_date
 
 
 def make_descriptive_stats_path(
