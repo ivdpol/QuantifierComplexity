@@ -112,14 +112,29 @@ def shuff_and_standardize_lz(data: pd.DataFrame, verbose=False):
 
     '''
     if verbose:
-        print(data[["expression", "lempel_ziv"]])
+        print(data[["expression", "lempel_ziv_0"]])
         print("==========================================")
-    data["lz_shuffled"] = \
-        data["lempel_ziv"].sample(frac=1).reset_index(drop=True)
+    data["lz_0_shuffled"] = \
+        data["lempel_ziv_0"].sample(frac=1).reset_index(drop=True)
     if verbose:
-        print(data[["expression", "lempel_ziv", "lz_shuffled"]])
-    data["lz_zscore"] = stats.zscore(data["lempel_ziv"])
-    data["lz_shuff_zscore"] = stats.zscore(data["lz_shuffled"])
+        print(data[["expression", "lempel_ziv_0", "lz_shuffled"]])
+
+    data["lz_0_zscore"] = stats.zscore(data["lempel_ziv_0"])
+    data["lz_0_shuff_zscore"] = \
+        data["lz_0_zscore"].sample(frac=1).reset_index(drop=True)
+
+    data["lz_1_zscore"] = stats.zscore(data["lempel_ziv_1"]) 
+    data["lz_1_shuff_zscore"] = \
+        data["lz_1_zscore"].sample(frac=1).reset_index(drop=True)
+
+    data["lz_2_zscore"] = stats.zscore(data["lempel_ziv_2"])
+    data["lz_2_shuff_zscore"] = \
+        data["lz_2_zscore"].sample(frac=1).reset_index(drop=True)
+
+    data["lz_mean_zscore"] = stats.zscore(data["lempel_ziv_mean"])
+    data["lz_mean_shuff_zscore"] = \
+        data["lz_mean_zscore"].sample(frac=1).reset_index(drop=True)
+
     if verbose:
         print(data[["lz_shuffled", "lz_shuff_zscore"]])
 
@@ -139,11 +154,11 @@ def mon_quan_cons(row):
 
 if __name__ == "__main__":
     # Default values for argparse args.
-    LANGUAGE_NAME = "Logical"       # "Logical_index"       # "Logical"
-    MAX_EXPR_LEN = 7                # 5 for Logical_index   # 7 for Logical
-    MAX_MODEL_SIZE = 8
-    LANG_GEN_DATE = "2020-12-25"    
-    CSV_DATE = "2021-01-16"         
+    LANGUAGE_NAME = "Logical_index" # "Logical_index"       # "Logical"
+    MAX_EXPR_LEN = 5                # 5 for Logical_index   # 7 for Logical
+    MAX_MODEL_SIZE = 8 # 8
+    LANG_GEN_DATE = "2022-03-11"    # "2022-03-11"  # "2020-12-25"    
+    CSV_DATE = "2022-03-14"         # "2022-03-14"  # "2021-01-16"         
     args = parse_args()
 
     # Set DataFrame print options.
@@ -190,4 +205,37 @@ if __name__ == "__main__":
     utils.store_language_data_to_csv(
         data, args.max_model_size, args.max_expr_len, 
         args.language_name, args.lang_gen_date, verbose=True
+    )
+
+
+    check_01 = data["lempel_ziv_0"] == data["lempel_ziv_1"]
+    check_12 = data["lempel_ziv_1"] == data["lempel_ziv_2"]
+    check_20 = data["lempel_ziv_2"] == data["lempel_ziv_0"]
+    check_mean_0 = data["lempel_ziv_0"] == data["lempel_ziv_mean"]
+    check_mean_1 = data["lempel_ziv_1"] == data["lempel_ziv_mean"]
+    check_mean_2 = data["lempel_ziv_2"] == data["lempel_ziv_mean"]
+
+    print(
+        "\ncheck_01 = data[lempel_ziv_0] == data[lempel_ziv_1] =", 
+        check_01.all()
+    )
+    print(
+        "\ncheck_12 = data[lempel_ziv_1] == data[lempel_ziv_2] =", 
+        check_12.all()
+    )
+    print(
+        "\ncheck_20 = data[lempel_ziv_2] == data[lempel_ziv_0] =", 
+        check_20.all()
+    )
+    print(
+        "\ncheck_mean_0 = data[lempel_ziv_0] == data[lempel_ziv_mean] =", 
+        check_mean_0.all()
+    )
+    print(
+        "\ncheck_mean_1 = data[lempel_ziv_1] == data[lempel_ziv_mean] =", 
+        check_mean_1.all()
+    )
+    print(
+        "\ncheck_mean_2 = data[lempel_ziv_1] == data[lempel_ziv_mean] =", 
+        check_mean_2.all(), "\n"
     )
