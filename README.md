@@ -1,6 +1,6 @@
 # Quantifiers satisfying semantic universals have shorter minimal description length
 
-This repository accompanies section 4 (Experiment 2: Language of Minimal Expression Length) in the following paper:
+This repository accompanies Section 4 (Experiment 2: Language of Minimal Expression Length) in the following paper:
 * Iris van de Pol, Paul Lodder, Leendert van Maanen, Shane Steinert-Threlkeld, and Jakub Szymanik, *Quantifiers satisfying semantic universals have shorter minimal description length*, submitted.
 
 This project explores the complexity of quantifiers in the explanation of semantic universals, and compares these to earlier results on complexity (see [Van de Pol, Steinert-Threlkeld, Szymanik](https://cogsci.mindmodeling.org/2019/papers/0507/0507.pdf)) and learnability (see [Steinert-Threlkeld and Szymanik](https://semprag.org/index.php/sp/article/viewFile/sp.12.4/pdf)) in the explanation of semantic universals. In particular, we generate a large collection of quantifier expressions, based on a simple yet expressive grammar, and compute their complexities for two measures of complexity—minimal expression length and Lempel-Ziv (LZ) complexity—and whether they adhere to the universal properties of monotonicity, quantity, or conservativity.
@@ -46,6 +46,7 @@ The program [src/generate_expressions.py](src/generate_expressions.py) creates a
 Then by using the LanguageGenerator class method `gen_all_expr_and_their_scores()` for a given `max_expr_len`, a recursive procedure generates all (semantically unique) expressions of minimal expression length up to and including `max_expr_len`.
 For each of those expressions their adherence to universal properties and their complexity scores are computed.
 The LanguageGenerator object is stored in a `.dill` file, and the expressions and their scores are stored in a `.csv` file.
+A zipped `.dill` file for Language=Logical can be found [here](results/Language=Logical-max_model_size=8/2022-03-11/language_generators/language_generator_up_to_length_7.dill.zip), and a zipped `.dill` file for Lanuage=Logical_index can be downloaded with this [link](https://web.tresorit.com/l/S29Mc#WyfK2kGg4m1pqEJAQz6Z7w).
 
 Then the program [src/lex_perm.py](src/lex_perm.py) should be run to create two permutations of the binary quantifier representations (also called their meaning or extension) based on different lexicographical base orders over the quantifier models. The program computes the Lempel-Ziv complexities over these permuted quantifier representations.
 See Section 4.1.3. *(Encoding Quantifier Meanings as Binary Sequences)* for more explanation about different lexicographical orders over the quantifier models.
